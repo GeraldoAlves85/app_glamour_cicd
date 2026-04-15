@@ -2,78 +2,141 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
     branches: [ main ]
+  workflow_dispatch:
+
+env:
+  SONAR_ORG: geraldoalves85
+  SONAR_PROJECT_KEY: geraldoalves85_app_glamour_cicd
+  DOCKER_USERNAME: geraldoti2022
+  DOCKER_IMAGE: geraldoti2022/glamour-botanica
 
 jobs:
-  test:
-    name: 🧪 Testes
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          
-      - name: Install dependencies
-        working-directory: packages/services/catalog-ms
-        run: npm install
-        
-      - name: Run tests
-        working-directory: packages/services/catalog-ms
-        run: npm test || echo "No tests yet"
-
-  sonarqube:
-    name: 🔒 SonarQube Analysis
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        with:
-          args: >
-            -Dsonar.projectKey=glamour-ecommerce
-            -Dsonar.sources=packages/services
-
+  # =============================================
+  # STAGE 1: BUILD & TEST
+  # =============================================
   build:
-    name: 🐳 Build Docker Image
+    name: Build and Test
     runs-on: ubuntu-latest
-    needs: sonarqube
-    if: github.ref == 'refs/heads/main'
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Build Docker image
-        working-directory: packages/services/catalog-ms
-        run: docker build -t glamour-catalog-ms:latest .
-        
-      - name: Save image
-        run: docker save glamour-catalog-ms:latest | gzip > catalog-ms.tar.gz
-        
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-image
-          path: catalog-ms.tar.gz
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  deploy:
-    name: 🚀 Deploy
+      - name: Generate version
+        id: version
+        run: |
+          VERSION="v1.0.${{ github.run_number }}"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Validate project
+        run: |
+          echo "Validating project files..."
+          
+          if [ -f "glamour-botanica.html" ]; then
+            echo "[OK] HTML file found"
+            echo "     Size: $(wc -c < glamour-botanica.html) bytes"
+          else
+            echo "[ERROR] HTML file not found"
+            exit 1
+          fi
+          
+          echo "Validation completed"
+
+  # =============================================
+  # STAGE 2: SONARCLOUD ANALYSIS
+  # =============================================
+  sonarcloud:
+    name: SonarCloud Analysis
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/main'
     steps:
-      - name: Deploy simulation
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
+            -Dsonar.organization=${{ env.SONAR_ORG }}
+            -Dsonar.sources=.
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/backups/**,**/.github/**
+            -Dsonar.sourceEncoding=UTF-8
+
+  # =============================================
+  # STAGE 3: DOCKER BUILD & DEPLOY
+  # =============================================
+  deploy:
+    name: Docker Build and Deploy
+    runs-on: ubuntu-latest
+    needs: sonarcloud
+    if: success()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create Dockerfile
         run: |
-          echo "✅ Deploy simulado com sucesso!"
-          echo "🚀 Imagem pronta para deploy no Docker Hub"
-          echo "📦 Execute: docker-compose up -d"
+          cat > Dockerfile << 'DOCKERFILE'
+          FROM nginx:alpine
+          LABEL maintainer="geraldoti2022"
+          LABEL description="Glamour Botanica - Salão de Beleza e Spa"
+          COPY glamour-botanica.html /usr/share/nginx/html/index.html
+          EXPOSE 80
+          HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+              CMD wget -q --spider http://localhost/ || exit 1
+          DOCKERFILE
+
+      - name: Build Docker image
+        run: |
+          VERSION="${{ needs.build.outputs.version }}"
+          echo "Building version: $VERSION"
+          docker build -t ${{ env.DOCKER_IMAGE }}:$VERSION .
+          docker tag ${{ env.DOCKER_IMAGE }}:$VERSION ${{ env.DOCKER_IMAGE }}:latest
+          echo "Build completed"
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Push to Docker Hub
+        run: |
+          VERSION="${{ needs.build.outputs.version }}"
+          docker push ${{ env.DOCKER_IMAGE }}:$VERSION
+          docker push ${{ env.DOCKER_IMAGE }}:latest
+          
+          echo ""
+          echo "=========================================="
+          echo "DEPLOY COMPLETED SUCCESSFULLY"
+          echo "=========================================="
+          echo "Version: $VERSION"
+          echo "Image:   ${{ env.DOCKER_IMAGE }}:$VERSION"
+          echo "Image:   ${{ env.DOCKER_IMAGE }}:latest"
+          echo ""
+          echo "Pull command:"
+          echo "  docker pull ${{ env.DOCKER_IMAGE }}:latest"
+          echo ""
+          echo "Run command:"
+          echo "  docker run -d -p 80:80 ${{ env.DOCKER_IMAGE }}:latest"
+          echo "=========================================="
+
+      - name: Deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | ${{ needs.build.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Image | ${{ env.DOCKER_IMAGE }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| SonarCloud | [View Report](https://sonarcloud.io/project/overview?id=${{ env.SONAR_PROJECT_KEY }}) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Hub | [View Image](https://hub.docker.com/r/${{ env.DOCKER_IMAGE }}) |" >> $GITHUB_STEP_SUMMARY
