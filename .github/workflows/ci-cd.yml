@@ -12,9 +12,6 @@ env:
   DOCKER_IMAGE: geraldoti2022/glamour-botanica
 
 jobs:
-  # =============================================
-  # STAGE 1: SONARCLOUD ANALYSIS
-  # =============================================
   sonarcloud:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
@@ -36,9 +33,6 @@ jobs:
             -Dsonar.sources=.
             -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/backups/**,**/.github/**
 
-  # =============================================
-  # STAGE 2: DOCKER BUILD & DEPLOY
-  # =============================================
   deploy:
     name: Docker Build and Deploy
     runs-on: ubuntu-latest
@@ -81,6 +75,6 @@ jobs:
           echo "Image: ${{ env.DOCKER_IMAGE }}:$VERSION"
           echo "Image: ${{ env.DOCKER_IMAGE }}:latest"
           echo ""
-          echo "Pull: docker pull ${{ env.DOCKER_IMAGE }}:latest"
-          echo "Run:  docker run -d -p 80:80 ${{ env.DOCKER_IMAGE }}:latest"
+          echo "Pull command: docker pull ${{ env.DOCKER_IMAGE }}:latest"
+          echo "Run command:  docker run -d -p 80:80 ${{ env.DOCKER_IMAGE }}:latest"
           echo "=========================================="
