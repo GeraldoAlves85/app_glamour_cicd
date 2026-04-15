@@ -1,18 +1,18 @@
 #!/bin/bash
 
-echo "🧪 GLAMOUR - TESTES E ANÁLISE DE CÓDIGO"
+echo " GLAMOUR - TESTES E ANÁLISE DE CÓDIGO"
 echo "========================================"
 
 cd packages/services/catalog-ms
 
 # Instalar dependências
-echo "📦 Instalando dependências..."
+echo " Instalando dependências..."
 npm install --silent 2>/dev/null
 
 # Rodar testes com coverage
-echo "🧪 Executando testes..."
-npm run test:coverage 2>/dev/null || {
-    echo "⚠️  Sem testes configurados. Criando teste básico..."
+echo " Executando testes..."
+npm run test:coverage 2>/dev/null  {
+    echo "⚠  Sem testes configurados. Criando teste básico..."
     
     mkdir -p tests
     cat > tests/product.test.ts << 'TEST'
@@ -41,16 +41,16 @@ TEST
     npm install -D jest @types/jest ts-jest --silent 2>/dev/null
     
     # Rodar teste
-    npx jest --coverage --passWithNoTests 2>/dev/null || true
+    npx jest --coverage --passWithNoTests 2>/dev/null  true
 }
 
 cd ../..
 
 # Executar SonarScanner
 echo ""
-echo "🔍 Executando SonarQube..."
+echo " Executando SonarQube..."
 ./sonar-scan.sh
 
 echo ""
-echo "✅ Processo concluído!"
+echo " Processo concluído!"
 echo "🌐 Ver resultados em: http://localhost:9000/dashboard?id=glamour-ecommerce"

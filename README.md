@@ -3,7 +3,7 @@
 ## Descricao
 Landing page profissional para salao de beleza, spa e maquiagem para noivas.
 
-## Tecnologias
+## Tecnologias Utilizadas
 - HTML5 / CSS3
 - Nginx (Docker)
 - SonarCloud (Quality Analysis)
@@ -16,7 +16,7 @@ O pipeline executa automaticamente:
 2. Build da imagem Docker
 3. Deploy para Docker Hub
 
-## Deploy
+## Como Executar
 ```bash
 docker pull geraldoti2022/glamour-botanica:latest
 docker run -d -p 80:80 geraldoti2022/glamour-botanica:latest

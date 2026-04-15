@@ -8,19 +8,19 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 echo -e "${BLUE}════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}     🔧 CORREÇÃO COMPLETA - CATALOG MS                       ║${NC}"
+echo -e "${BLUE}      CORREÇÃO COMPLETA - CATALOG MS                       ║${NC}"
 echo -e "${BLUE}════════════════════════════════════════════════════════════╝${NC}"
 
 # =============================================
 # 1. Popular o banco de dados
 # =============================================
 echo -e "${YELLOW}[1/5] Populando banco de dados com init.sql...${NC}"
-docker exec -i glamour-mysql-catalog mysql -uroot -proot123 catalog_db < packages/services/catalog-ms/init.sql 2>/dev/null || {
+docker exec -i glamour-mysql-catalog mysql -uroot -proot123 catalog_db < packages/services/catalog-ms/init.sql 2>/dev/null  {
     echo "Tentando método alternativo..."
     docker cp packages/services/catalog-ms/init.sql glamour-mysql-catalog:/tmp/
     docker exec glamour-mysql-catalog mysql -uroot -proot123 -e "source /tmp/init.sql"
 }
-echo -e "${GREEN}✅ Banco populado com produtos de maquiagem!${NC}"
+echo -e "${GREEN} Banco populado com produtos de maquiagem!${NC}"
 
 # =============================================
 # 2. Corrigir productRoutes.ts
@@ -169,7 +169,7 @@ export default async function productRoutes(fastify: FastifyInstance) {
   });
 }
 EOFROUTES
-echo -e "${GREEN}✅ productRoutes.ts corrigido${NC}"
+echo -e "${GREEN} productRoutes.ts corrigido${NC}"
 
 # =============================================
 # 3. Corrigir server.ts (erro de tipo)
@@ -177,7 +177,7 @@ echo -e "${GREEN}✅ productRoutes.ts corrigido${NC}"
 echo -e "${YELLOW}[3/5] Corrigindo server.ts...${NC}"
 sed -i "s/server.log.error('Error during shutdown:', error);/server.log.error('Error during shutdown: ' + error);/g" packages/services/catalog-ms/src/server.ts
 sed -i "s/server.log.error('Failed to start server:', error);/server.log.error('Failed to start server: ' + error);/g" packages/services/catalog-ms/src/server.ts
-echo -e "${GREEN}✅ server.ts corrigido${NC}"
+echo -e "${GREEN} server.ts corrigido${NC}"
 
 # =============================================
 # 4. Sincronizar Prisma com banco populado
@@ -186,7 +186,7 @@ echo -e "${YELLOW}[4/5] Sincronizando Prisma...${NC}"
 cd packages/services/catalog-ms
 npx prisma db pull
 npx prisma generate
-echo -e "${GREEN}✅ Prisma sincronizado${NC}"
+echo -e "${GREEN} Prisma sincronizado${NC}"
 
 # =============================================
 # 5. Verificar se tudo está pronto
@@ -197,14 +197,14 @@ docker exec glamour-mysql-catalog mysql -uroot -proot123 -e "SELECT id, name, pr
 
 echo ""
 echo -e "${GREEN}════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}     ✅ TUDO PRONTO!                                         ║${NC}"
+echo -e "${GREEN}      TUDO PRONTO!                                         ║${NC}"
 echo -e "${GREEN}════════════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "${BLUE}🚀 Para iniciar o servidor:${NC}"
+echo -e "${BLUE} Para iniciar o servidor:${NC}"
 echo -e "   ${YELLOW}cd ~/glamour-test/packages/services/catalog-ms${NC}"
 echo -e "   ${YELLOW}npm run dev${NC}"
 echo ""
-echo -e "${BLUE}🧪 Para testar a API:${NC}"
+echo -e "${BLUE} Para testar a API:${NC}"
 echo -e "   ${YELLOW}curl http://localhost:3001/health${NC}"
 echo -e "   ${YELLOW}curl http://localhost:3001/api/products${NC}"
 echo ""
