@@ -1,0 +1,67 @@
+{
+  "dashboard": {
+    "title": "Glamour Botanica - Monitoramento",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Containers Ativos",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "count(container_last_seen{name=~\".*glamour.*\"})",
+            "legendFormat": "Total",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4}
+      },
+      {
+        "id": 2,
+        "title": "Uso de CPU por Container",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(container_cpu_usage_seconds_total{name=~\".*glamour.*\"}[5m]) * 100",
+            "legendFormat": "{{name}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"x": 6, "y": 0, "w": 12, "h": 8}
+      },
+      {
+        "id": 3,
+        "title": "Uso de Memoria por Container",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "container_memory_usage_bytes{name=~\".*glamour.*\"} / 1024 / 1024",
+            "legendFormat": "{{name}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 8}
+      },
+      {
+        "id": 4,
+        "title": "Trafico de Rede",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(container_network_receive_bytes_total{name=~\".*glamour.*\"}[5m])",
+            "legendFormat": "RX {{name}}",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(container_network_transmit_bytes_total{name=~\".*glamour.*\"}[5m])",
+            "legendFormat": "TX {{name}}",
+            "refId": "B"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8}
+      }
+    ],
+    "refresh": "5s",
+    "time": {"from": "now-15m", "to": "now"}
+  },
+  "overwrite": true
+}

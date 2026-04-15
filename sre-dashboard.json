@@ -1,0 +1,320 @@
+{
+  "dashboard": {
+    "title": "SRE - Glamour Botanica Production",
+    "refresh": "5s",
+    "time": {"from": "now-15m", "to": "now"},
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "SRE STATUS GERAL",
+        "type": "row",
+        "gridPos": {"x": 0, "y": 0, "w": 24, "h": 1},
+        "collapsed": false
+      },
+      {
+        "id": 2,
+        "title": "Containers Saudaveis",
+        "type": "stat",
+        "targets": [{
+          "expr": "count(container_last_seen{name=~\".*glamour.*\"})",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 8}]}
+          }
+        },
+        "gridPos": {"x": 0, "y": 1, "w": 4, "h": 4}
+      },
+      {
+        "id": 3,
+        "title": "CPU Total",
+        "type": "stat",
+        "targets": [{
+          "expr": "sum(rate(container_cpu_usage_seconds_total{name=~\".*glamour.*\"}[1m])) * 100",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 50}, {"color": "red", "value": 80}]}
+          }
+        },
+        "gridPos": {"x": 4, "y": 1, "w": 4, "h": 4}
+      },
+      {
+        "id": 4,
+        "title": "Memoria Total",
+        "type": "stat",
+        "targets": [{
+          "expr": "sum(container_memory_usage_bytes{name=~\".*glamour.*\"}) / 1024 / 1024",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "mbytes",
+            "thresholds": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 2048}, {"color": "red", "value": 4096}]}
+          }
+        },
+        "gridPos": {"x": 8, "y": 1, "w": 4, "h": 4}
+      },
+      {
+        "id": 5,
+        "title": "Disco Total",
+        "type": "stat",
+        "targets": [{
+          "expr": "sum(container_fs_usage_bytes{name=~\".*glamour.*\"}) / 1024 / 1024 / 1024",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "gbytes",
+            "thresholds": {"steps": [{"color": "green", "value": null}, {"color": "red", "value": 10}]}
+          }
+        },
+        "gridPos": {"x": 12, "y": 1, "w": 4, "h": 4}
+      },
+      {
+        "id": 6,
+        "title": "Network In/Out",
+        "type": "stat",
+        "targets": [
+          {"expr": "sum(rate(container_network_receive_bytes_total{name=~\".*glamour.*\"}[1m])) / 1024", "refId": "A", "legendFormat": "IN"},
+          {"expr": "sum(rate(container_network_transmit_bytes_total{name=~\".*glamour.*\"}[1m])) / 1024", "refId": "B", "legendFormat": "OUT"}
+        ],
+        "fieldConfig": {
+          "defaults": {"unit": "KBs"}
+        },
+        "gridPos": {"x": 16, "y": 1, "w": 4, "h": 4}
+      },
+      {
+        "id": 7,
+        "title": "Uptime",
+        "type": "stat",
+        "targets": [{
+          "expr": "time() - process_start_time_seconds{job=\"catalog-ms\"}",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {"unit": "s"}
+        },
+        "gridPos": {"x": 20, "y": 1, "w": 4, "h": 4}
+      },
+      {
+        "id": 10,
+        "title": "CPU por Container",
+        "type": "row",
+        "gridPos": {"x": 0, "y": 5, "w": 24, "h": 1}
+      },
+      {
+        "id": 11,
+        "title": "CPU Usage %",
+        "type": "timeseries",
+        "targets": [{
+          "expr": "rate(container_cpu_usage_seconds_total{name=~\".*glamour.*\"}[1m]) * 100",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "color": {"mode": "palette-classic"}
+          }
+        },
+        "gridPos": {"x": 0, "y": 6, "w": 12, "h": 8}
+      },
+      {
+        "id": 12,
+        "title": "Top 5 Containers por CPU",
+        "type": "gauge",
+        "targets": [{
+          "expr": "topk(5, rate(container_cpu_usage_seconds_total{name=~\".*glamour.*\"}[1m]) * 100)",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 30}, {"color": "red", "value": 70}]}
+          }
+        },
+        "gridPos": {"x": 12, "y": 6, "w": 6, "h": 8}
+      },
+      {
+        "id": 13,
+        "title": "CPU Throttling",
+        "type": "timeseries",
+        "targets": [{
+          "expr": "rate(container_cpu_cfs_throttled_seconds_total{name=~\".*glamour.*\"}[1m]) * 100",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {"unit": "percent", "min": 0}
+        },
+        "gridPos": {"x": 18, "y": 6, "w": 6, "h": 8}
+      },
+      {
+        "id": 20,
+        "title": "Memoria por Container",
+        "type": "row",
+        "gridPos": {"x": 0, "y": 14, "w": 24, "h": 1}
+      },
+      {
+        "id": 21,
+        "title": "Uso de Memoria (MB)",
+        "type": "timeseries",
+        "targets": [{
+          "expr": "container_memory_usage_bytes{name=~\".*glamour.*\"} / 1024 / 1024",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {"unit": "mbytes", "min": 0}
+        },
+        "gridPos": {"x": 0, "y": 15, "w": 12, "h": 8}
+      },
+      {
+        "id": 22,
+        "title": "Top 5 por Memoria",
+        "type": "bargauge",
+        "targets": [{
+          "expr": "topk(5, container_memory_usage_bytes{name=~\".*glamour.*\"} / 1024 / 1024)",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "mbytes",
+            "thresholds": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 512}, {"color": "red", "value": 1024}]}
+          }
+        },
+        "gridPos": {"x": 12, "y": 15, "w": 6, "h": 8}
+      },
+      {
+        "id": 23,
+        "title": "Memoria Cache vs Usage",
+        "type": "timeseries",
+        "targets": [
+          {"expr": "container_memory_usage_bytes{name=~\".*glamour.*\"} / 1024 / 1024", "legendFormat": "{{name}} - Usage", "refId": "A"},
+          {"expr": "container_memory_cache{name=~\".*glamour.*\"} / 1024 / 1024", "legendFormat": "{{name}} - Cache", "refId": "B"}
+        ],
+        "fieldConfig": {
+          "defaults": {"unit": "mbytes"}
+        },
+        "gridPos": {"x": 18, "y": 15, "w": 6, "h": 8}
+      },
+      {
+        "id": 30,
+        "title": "Rede por Container",
+        "type": "row",
+        "gridPos": {"x": 0, "y": 23, "w": 24, "h": 1}
+      },
+      {
+        "id": 31,
+        "title": "Trafico de Rede - Entrada",
+        "type": "timeseries",
+        "targets": [{
+          "expr": "rate(container_network_receive_bytes_total{name=~\".*glamour.*\"}[1m]) / 1024",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {"unit": "KBs", "min": 0}
+        },
+        "gridPos": {"x": 0, "y": 24, "w": 8, "h": 8}
+      },
+      {
+        "id": 32,
+        "title": "Trafico de Rede - Saida",
+        "type": "timeseries",
+        "targets": [{
+          "expr": "rate(container_network_transmit_bytes_total{name=~\".*glamour.*\"}[1m]) / 1024",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {"unit": "KBs", "min": 0}
+        },
+        "gridPos": {"x": 8, "y": 24, "w": 8, "h": 8}
+      },
+      {
+        "id": 33,
+        "title": "Pacotes Dropados",
+        "type": "timeseries",
+        "targets": [
+          {"expr": "rate(container_network_receive_packets_dropped_total{name=~\".*glamour.*\"}[1m])", "legendFormat": "{{name}} - RX Drop", "refId": "A"},
+          {"expr": "rate(container_network_transmit_packets_dropped_total{name=~\".*glamour.*\"}[1m])", "legendFormat": "{{name}} - TX Drop", "refId": "B"}
+        ],
+        "gridPos": {"x": 16, "y": 24, "w": 8, "h": 8}
+      },
+      {
+        "id": 40,
+        "title": "Disco por Container",
+        "type": "row",
+        "gridPos": {"x": 0, "y": 32, "w": 24, "h": 1}
+      },
+      {
+        "id": 41,
+        "title": "Uso de Disco (GB)",
+        "type": "timeseries",
+        "targets": [{
+          "expr": "container_fs_usage_bytes{name=~\".*glamour.*\"} / 1024 / 1024 / 1024",
+          "legendFormat": "{{name}} - {{device}}",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {"unit": "gbytes"}
+        },
+        "gridPos": {"x": 0, "y": 33, "w": 12, "h": 8}
+      },
+      {
+        "id": 42,
+        "title": "IO de Disco - Leitura",
+        "type": "timeseries",
+        "targets": [{
+          "expr": "rate(container_fs_reads_bytes_total{name=~\".*glamour.*\"}[1m]) / 1024 / 1024",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {"unit": "MBs"}
+        },
+        "gridPos": {"x": 12, "y": 33, "w": 6, "h": 8}
+      },
+      {
+        "id": 43,
+        "title": "IO de Disco - Escrita",
+        "type": "timeseries",
+        "targets": [{
+          "expr": "rate(container_fs_writes_bytes_total{name=~\".*glamour.*\"}[1m]) / 1024 / 1024",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }],
+        "fieldConfig": {
+          "defaults": {"unit": "MBs"}
+        },
+        "gridPos": {"x": 18, "y": 33, "w": 6, "h": 8}
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "container",
+          "type": "query",
+          "query": "label_values(container_last_seen{name=~\".*glamour.*\"}, name)",
+          "refresh": 1,
+          "includeAll": true,
+          "multi": true
+        }
+      ]
+    }
+  },
+  "overwrite": true
+}
