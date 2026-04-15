@@ -32,8 +32,9 @@ jobs:
             -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
             -Dsonar.organization=${{ env.SONAR_ORG }}
             -Dsonar.sources=.
-            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/backups/**,**/.github/**
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/backups/**,**/.github/**,**/*.json,**/*.xml
             -Dsonar.qualitygate.wait=false
+            -Dsonar.qualitygate.timeout=1
 
   deploy:
     name: Docker Build and Deploy
@@ -49,29 +50,33 @@ jobs:
           cat > Dockerfile << 'DOCKERFILE'
           FROM nginx:alpine
           LABEL maintainer="geraldoti2022"
-          LABEL description="Glamour Botanica"
+          LABEL description="Glamour Botanica - Salão de Beleza e Spa"
           COPY glamour-botanica.html /usr/share/nginx/html/index.html
           EXPOSE 80
+          HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+              CMD wget -q --spider http://localhost/ || exit 1
           DOCKERFILE
 
-      - name: Build and Push Docker image
+      - name: Build Docker image
         run: |
           VERSION="v1.0.${{ github.run_number }}"
           echo "Building version: $VERSION"
-          
           docker build -t ${{ env.DOCKER_IMAGE }}:$VERSION .
           docker tag ${{ env.DOCKER_IMAGE }}:$VERSION ${{ env.DOCKER_IMAGE }}:latest
-          
-          echo "Login to Docker Hub..."
+
+      - name: Login to Docker Hub
+        run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-          
-          echo "Pushing images..."
+
+      - name: Push to Docker Hub
+        run: |
+          VERSION="v1.0.${{ github.run_number }}"
           docker push ${{ env.DOCKER_IMAGE }}:$VERSION
           docker push ${{ env.DOCKER_IMAGE }}:latest
           
           echo ""
           echo "=========================================="
-          echo "DEPLOY COMPLETED"
+          echo "DEPLOY COMPLETED SUCCESSFULLY"
           echo "=========================================="
           echo "Version: $VERSION"
           echo "Image: ${{ env.DOCKER_IMAGE }}:$VERSION"
