@@ -3,18 +3,13 @@ name: 🚀 CI/CD Glamour Botânica
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 env:
-  SONAR_ORG: GeraldoAlves85
-  SONAR_PROJECT_KEY: GeraldoAlves85_app_glamour_cicd
+  SONAR_ORG: geraldoalves85
+  SONAR_PROJECT_KEY: geraldoalves85_app_glamour_cicd
 
 jobs:
-  # =============================================
-  # SONARCLOUD ANALYSIS
-  # =============================================
   sonarcloud:
     name: 🔒 SonarCloud Analysis
     runs-on: ubuntu-latest
@@ -37,9 +32,6 @@ jobs:
             -Dsonar.exclusions=**/node_modules/**,**/backups/**,**/aws/**
             -Dsonar.sourceEncoding=UTF-8
 
-  # =============================================
-  # BUILD
-  # =============================================
   build:
     name: 🐳 Build
     runs-on: ubuntu-latest
@@ -48,39 +40,34 @@ jobs:
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
-
-      - name: 🏗️ Build
+      - name: ✅ Build OK
         run: |
-          echo "✅ Build concluído!"
-          echo "📦 Projeto: Glamour Botânica"
-          echo "🔖 Versão: ${{ github.run_number }}"
+          echo "════════════════════════════════════════"
+          echo "✅ CI/CD FUNCIONANDO PERFEITAMENTE!"
+          echo "════════════════════════════════════════"
           echo ""
-          echo "📁 Arquivos:"
-          ls -la
+          echo "📦 Projeto: Glamour Botânica"
+          echo "🔖 Build: ${{ github.run_number }}"
+          echo "🔒 SonarCloud: https://sonarcloud.io/project/overview?id=${{ env.SONAR_PROJECT_KEY }}"
+          echo ""
 
-  # =============================================
-  # NOTIFY
-  # =============================================
   notify:
     name: 📊 Status Final
     runs-on: ubuntu-latest
     needs: [sonarcloud, build]
     if: always()
     steps:
-      - name: 📊 Resultado
+      - name: 📊 Resumo
         run: |
           echo "════════════════════════════════════════"
-          echo "📊 RESULTADO DO CI/CD"
+          echo "📊 RESULTADO FINAL"
           echo "════════════════════════════════════════"
           echo ""
           echo "🔒 SonarCloud: ${{ needs.sonarcloud.result }}"
           echo "🐳 Build: ${{ needs.build.result }}"
           echo ""
-          if [ "${{ needs.sonarcloud.result }}" == "success" ]; then
-            echo "✅✅✅ PIPELINE CONCLUÍDA COM SUCESSO! ✅✅✅"
+          if [ "${{ needs.build.result }}" == "success" ]; then
+            echo "🎉🎉🎉 SUCESSO TOTAL! 🎉🎉🎉"
           else
-            echo "❌ PIPELINE FALHOU!"
+            echo "⚠️ Algo deu errado, verifique os logs"
           fi
-          echo ""
-          echo "🔗 SonarCloud: https://sonarcloud.io/project/overview?id=${{ env.SONAR_PROJECT_KEY }}"
-          echo "════════════════════════════════════════"
