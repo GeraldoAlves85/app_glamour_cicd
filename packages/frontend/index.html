@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌸 Glamour Botânica | Skincare Natural</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Georgia', serif;
+            background: #faf9f6;
+            color: #2c2c2c;
+        }
+        .header {
+            padding: 30px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: 400;
+            letter-spacing: 3px;
+        }
+        .nav {
+            display: flex;
+            gap: 50px;
+        }
+        .nav a {
+            text-decoration: none;
+            color: #2c2c2c;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        .hero {
+            min-height: 85vh;
+            display: flex;
+            align-items: center;
+            padding: 60px;
+            background: linear-gradient(to bottom, #faf9f6, #f5f3ee);
+        }
+        .hero-content {
+            flex: 1;
+        }
+        .hero-badge {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: #8b7355;
+            margin-bottom: 30px;
+        }
+        .hero h1 {
+            font-size: 72px;
+            font-weight: 300;
+            line-height: 1.2;
+            margin-bottom: 30px;
+        }
+        .hero h1 span {
+            font-style: italic;
+        }
+        .hero p {
+            font-size: 18px;
+            color: #6b6b6b;
+            margin-bottom: 40px;
+            max-width: 500px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 16px 40px;
+            background: #2c2c2c;
+            color: white;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 13px;
+            border: 1px solid #2c2c2c;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: transparent;
+            color: #2c2c2c;
+        }
+        .btn-outline {
+            background: transparent;
+            color: #2c2c2c;
+            margin-left: 20px;
+        }
+        .btn-outline:hover {
+            background: #2c2c2c;
+            color: white;
+        }
+        .hero-image {
+            flex: 1;
+            text-align: right;
+            font-size: 350px;
+            opacity: 0.8;
+        }
+        .certifications {
+            padding: 60px;
+            background: white;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+        .cert-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .cert-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .cert-icon {
+            font-size: 36px;
+            color: #8b7355;
+        }
+        .cert-item h4 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 400;
+        }
+        .cert-item p {
+            font-size: 12px;
+            color: #8b7355;
+        }
+        .collection {
+            padding: 100px 60px;
+        }
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        .section-header h2 {
+            font-size: 42px;
+            font-weight: 300;
+            margin-bottom: 15px;
+        }
+        .section-header p {
+            color: #8b7355;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-size: 12px;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+        .product-card {
+            background: white;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .product-card:hover {
+            transform: translateY(-10px);
+        }
+        .product-badge {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #8b7355;
+            margin-bottom: 20px;
+        }
+        .product-icon {
+            font-size: 60px;
+            margin-bottom: 25px;
+            color: #8b7355;
+        }
+        .product-card h3 {
+            font-size: 22px;
+            font-weight: 400;
+            margin-bottom: 10px;
+        }
+        .product-desc {
+            font-size: 13px;
+            color: #8b7355;
+            margin-bottom: 20px;
+        }
+        .product-price {
+            font-size: 20px;
+        }
+        .old-price {
+            text-decoration: line-through;
+            color: #ccc;
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        .view-all {
+            text-align: center;
+            margin-top: 50px;
+        }
+        .why-section {
+            padding: 100px 60px;
+            background: white;
+        }
+        .why-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            max-width: 1300px;
+            margin: 0 auto;
+            align-items: center;
+        }
+        .why-content h2 {
+            font-size: 48px;
+            font-weight: 300;
+            margin-bottom: 30px;
+        }
+        .why-content h2 span {
+            font-style: italic;
+        }
+        .why-content p {
+            color: #6b6b6b;
+            line-height: 1.8;
+            margin-bottom: 40px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+        }
+        .feature-item {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .feature-icon {
+            font-size: 24px;
+            color: #8b7355;
+        }
+        .feature-item h4 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 400;
+        }
+        .feature-item p {
+            font-size: 13px;
+            margin: 0;
+        }
+        .why-image {
+            text-align: center;
+            font-size: 200px;
+            color: #8b7355;
+        }
+        .newsletter {
+            padding: 100px 60px;
+            background: #f5f3ee;
+            text-align: center;
+        }
+        .newsletter h2 {
+            font-size: 38px;
+            font-weight: 300;
+            margin-bottom: 20px;
+        }
+        .newsletter p {
+            color: #8b7355;
+            margin-bottom: 40px;
+        }
+        .newsletter-form {
+            display: flex;
+            gap: 15px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .newsletter-form input {
+            flex: 1;
+            padding: 18px;
+            border: 1px solid #ddd;
+            background: white;
+            font-size: 14px;
+        }
+        .newsletter-form button {
+            padding: 18px 40px;
+            background: #2c2c2c;
+            color: white;
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .newsletter-form button:hover {
+            background: #8b7355;
+        }
+        .footer {
+            padding: 50px 60px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .footer-logo {
+            font-size: 22px;
+            letter-spacing: 3px;
+        }
+        .footer-links {
+            display: flex;
+            gap: 40px;
+        }
+        .footer-links a {
+            text-decoration: none;
+            color: #2c2c2c;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 60px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #8b7355;
+            writing-mode: vertical-rl;
+        }
+        @media (max-width: 768px) {
+            .products-grid, .cert-grid, .why-grid {
+                grid-template-columns: 1fr;
+            }
+            .header {
+                padding: 20px;
+            }
+            .nav {
+                display: none;
+            }
+            .hero {
+                flex-direction: column;
+                padding: 40px 20px;
+            }
+            .hero h1 {
+                font-size: 42px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">GLAMOUR BOTÂNICA</div>
+        <nav class="nav">
+            <a href="#">Shop</a>
+            <a href="#">About</a>
+            <a href="#">Ingredients</a>
+            <a href="#">Journal</a>
+        </nav>
+        <div>🛒</div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">NATURAL SKINCARE</div>
+            <h1>Glow gently.<br><span>Naturally</span> you.</h1>
+            <p>Discover skincare that breathes with you. Pure ingredients, gentle rituals, radiant results.</p>
+            <a href="#" class="btn">Shop Now</a>
+            <a href="#" class="btn btn-outline">Discover</a>
+        </div>
+        <div class="hero-image">🌿</div>
+        <div class="scroll-indicator">SCROLL</div>
+    </section>
+
+    <section class="certifications">
+        <div class="cert-grid">
+            <div class="cert-item">
+                <div class="cert-icon">🌱</div>
+                <h4>Organic Certified</h4>
+                <p>100% organic ingredients</p>
+            </div>
+            <div class="cert-item">
+                <div class="cert-icon">🌸</div>
+                <h4>Natural Extracts</h4>
+                <p>Pure botanical formulas</p>
+            </div>
+            <div class="cert-item">
+                <div class="cert-icon">💚</div>
+                <h4>Clean Beauty</h4>
+                <p>No toxic chemicals</p>
+            </div>
+            <div class="cert-item">
+                <div class="cert-icon">🌿</div>
+                <h4>Vegan Formula</h4>
+                <p>Plant-powered skincare</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="collection">
+        <div class="section-header">
+            <h2>Gentle essentials</h2>
+            <p>OUR COLLECTION</p>
+        </div>
+        <div class="products-grid">
+            <div class="product-card">
+                <div class="product-badge">Bestseller</div>
+                <div class="product-icon">💧</div>
+                <h3>Hydra Cream</h3>
+                <p class="product-desc">Deep moisture with hyaluronic acid</p>
+                <div class="product-price">$54</div>
+            </div>
+            <div class="product-card">
+                <div class="product-badge">Sale</div>
+                <div class="product-icon">🧼</div>
+                <h3>Gentle Cleanser</h3>
+                <p class="product-desc">Soothing botanical wash</p>
+                <div class="product-price"><span class="old-price">$48</span> $38</div>
+            </div>
+            <div class="product-card">
+                <div class="product-icon">🌙</div>
+                <h3>Night Cream</h3>
+                <p class="product-desc">Restorative overnight treatment</p>
+                <div class="product-price">$64</div>
+            </div>
+            <div class="product-card">
+                <div class="product-icon">☀️</div>
+                <h3>Day Cream SPF 30</h3>
+                <p class="product-desc">Protection & hydration</p>
+                <div class="product-price">$58</div>
+            </div>
+        </div>
+        <div class="view-all">
+            <a href="#" class="btn btn-outline">View All Products</a>
+        </div>
+    </section>
+
+    <section class="why-section">
+        <div class="why-grid">
+            <div class="why-content">
+                <h2>Care that <span>breathes.</span></h2>
+                <p>We believe skincare should be a gentle ritual, not a complicated routine. Every product is crafted with intention and love for your skin.</p>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">🌍</div>
+                        <h4>Eco-Friendly</h4>
+                        <p>Recyclable packaging</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🌿</div>
+                        <h4>100% Natural</h4>
+                        <p>No synthetic chemicals</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🌸</div>
+                        <h4>Plant-Based</h4>
+                        <p>Botanical extracts</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🤝</div>
+                        <h4>Ethical Sourcing</h4>
+                        <p>Fair trade ingredients</p>
+                    </div>
+                </div>
+            </div>
+            <div class="why-image">🌸</div>
+        </div>
+    </section>
+
+    <section class="newsletter">
+        <h2>Join the ritual</h2>
+        <p>Subscribe for exclusive offers, advice and more.</p>
+        <form class="newsletter-form">
+            <input type="email" placeholder="Your email address">
+            <button type="submit">Subscribe</button>
+        </form>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-logo">GLAMOUR BOTÂNICA</div>
+        <div class="footer-links">
+            <a href="#">Shop</a>
+            <a href="#">About</a>
+            <a href="#">Ingredients</a>
+            <a href="#">Contact</a>
+        </div>
+        <div>© 2026</div>
+    </footer>
+</body>
+</html>

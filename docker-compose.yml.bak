@@ -1,0 +1,198 @@
+version: '3.8'
+
+# Redes personalizadas para isolar tráfego
+networks:
+  glamour-network:
+    driver: bridge
+  monitoring-network:
+    driver: bridge
+
+# Volumes persistentes
+volumes:
+  mysql_catalog_data:
+  mysql_cart_data:
+  mysql_auth_data:
+  redis_data:
+  grafana_data:
+  prometheus_data:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  sonar_db_data:
+
+services:
+  # =============================================
+  # BANCOS DE DADOS (MySQL + Redis)
+  # =============================================
+  
+  mysql-catalog:
+    image: mysql:8.0
+    container_name: glamour-mysql-catalog
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: catalog_db
+      MYSQL_USER: catalog_user
+      MYSQL_PASSWORD: catalog_pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_catalog_data:/var/lib/mysql
+      - ./packages/services/catalog-ms/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 5
+    networks:
+      - glamour-network
+
+  mysql-cart:
+    image: mysql:8.0
+    container_name: glamour-mysql-cart
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: cart_db
+      MYSQL_USER: cart_user
+      MYSQL_PASSWORD: cart_pass
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_cart_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 5
+    networks:
+      - glamour-network
+
+  mysql-auth:
+    image: mysql:8.0
+    container_name: glamour-mysql-auth
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: auth_db
+      MYSQL_USER: auth_user
+      MYSQL_PASSWORD: auth_pass
+    ports:
+      - "3309:3306"
+    volumes:
+      - mysql_auth_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 5
+    networks:
+      - glamour-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: glamour-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 5s
+      retries: 5
+    networks:
+      - glamour-network
+
+  # =============================================
+  # MONITORING STACK (Grafana + Prometheus + cAdvisor)
+  # =============================================
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: glamour-prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./packages/infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - monitoring-network
+      - glamour-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: glamour-grafana
+    restart: always
+    ports:
+      - "3030:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./packages/infra/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - monitoring-network
+    depends_on:
+      - prometheus
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: glamour-cadvisor
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg
+    networks:
+      - monitoring-network
+
+  # =============================================
+  # SONARQUBE (Análise de Código e Segurança)
+  # =============================================
+
+  sonarqube:
+    image: sonarqube:lts-community
+    container_name: glamour-sonarqube
+    restart: always
+    environment:
+      - SONAR_JDBC_URL=jdbc:postgresql://sonar-db:5432/sonar
+      - SONAR_JDBC_USERNAME=sonar
+      - SONAR_JDBC_PASSWORD=sonar
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    networks:
+      - monitoring-network
+    depends_on:
+      - sonar-db
+
+  sonar-db:
+    image: postgres:15-alpine
+    container_name: glamour-sonar-db
+    restart: always
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+      - POSTGRES_DB=sonar
+    volumes:
+      - sonar_db_data:/var/lib/postgresql/data
+    networks:
+      - monitoring-network

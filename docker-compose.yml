@@ -1,0 +1,202 @@
+version: '3.8'
+
+networks:
+  glamour-network:
+    driver: bridge
+  monitoring-network:
+    driver: bridge
+
+volumes:
+  mysql_catalog_data:
+  mysql_cart_data:
+  mysql_auth_data:
+  redis_data:
+  grafana_data:
+  prometheus_data:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  sonar_db_data:
+
+services:
+  mysql-catalog:
+    image: mysql:8.0
+    container_name: glamour-mysql-catalog
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: catalog_db
+      MYSQL_USER: catalog_user
+      MYSQL_PASSWORD: catalog_pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_catalog_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - glamour-network
+
+  mysql-cart:
+    image: mysql:8.0
+    container_name: glamour-mysql-cart
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: cart_db
+      MYSQL_USER: cart_user
+      MYSQL_PASSWORD: cart_pass
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_cart_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - glamour-network
+
+  mysql-auth:
+    image: mysql:8.0
+    container_name: glamour-mysql-auth
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: auth_db
+      MYSQL_USER: auth_user
+      MYSQL_PASSWORD: auth_pass
+    ports:
+      - "3309:3306"
+    volumes:
+      - mysql_auth_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - glamour-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: glamour-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - glamour-network
+
+  catalog-ms:
+    build: ./packages/services/catalog-ms
+    container_name: glamour-catalog-ms
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=mysql://root:root123@mysql-catalog:3306/catalog_db
+      - PORT=3001
+      - NODE_ENV=development
+    volumes:
+      - ./packages/services/catalog-ms:/app
+      - /app/node_modules
+    networks:
+      - glamour-network
+    depends_on:
+      - mysql-catalog
+
+  cart-ms:
+    build: ./packages/services/cart-ms
+    container_name: glamour-cart-ms
+    restart: always
+    ports:
+      - "3002:3002"
+    environment:
+      - DATABASE_URL=mysql://root:root123@mysql-cart:3306/cart_db
+      - PORT=3002
+      - NODE_ENV=development
+    volumes:
+      - ./packages/services/cart-ms:/app
+      - /app/node_modules
+    networks:
+      - glamour-network
+    depends_on:
+      - mysql-cart
+
+  frontend:
+    image: nginx:alpine
+    container_name: glamour-frontend
+    restart: always
+    ports:
+      - "3005:80"
+    volumes:
+      - ./packages/frontend/index.html:/usr/share/nginx/html/index.html:ro
+    networks:
+      - glamour-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: glamour-prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./packages/infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - monitoring-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: glamour-grafana
+    restart: always
+    ports:
+      - "3030:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - monitoring-network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: glamour-cadvisor
+    restart: always
+    ports:
+      - "8080:8080"
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - monitoring-network
+
+  sonar-db:
+    image: postgres:15-alpine
+    container_name: glamour-sonar-db
+    restart: always
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+      - POSTGRES_DB=sonar
+    volumes:
+      - sonar_db_data:/var/lib/postgresql/data
+    networks:
+      - monitoring-network
+
+  sonarqube:
+    image: sonarqube:lts-community
+    container_name: glamour-sonarqube
+    restart: always
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_JDBC_URL=jdbc:postgresql://sonar-db:5432/sonar
+      - SONAR_JDBC_USERNAME=sonar
+      - SONAR_JDBC_PASSWORD=sonar
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    networks:
+      - monitoring-network
+    depends_on:
+      - sonar-db

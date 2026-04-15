@@ -1,0 +1,160 @@
+# =============================================
+# GLAMOUR E-COMMERCE - PROMETHEUS CONFIGURATION
+# =============================================
+# Configuração de monitoramento para todos os serviços
+# =============================================
+
+global:
+  scrape_interval: 15s      # Intervalo padrão de coleta
+  evaluation_interval: 15s  # Intervalo de avaliação de regras
+  external_labels:
+    monitor: 'glamour-monitoring'
+    environment: 'development'
+
+# Configuração de alertas (futuro AlertManager)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+# Regras de alerta
+rule_files:
+  # - 'alerts/*.yml'
+
+# =============================================
+# SCRAPE CONFIGS (Alvos de Monitoramento)
+# =============================================
+
+scrape_configs:
+  # ---------------------------------------------
+  # 1. PROMETHEUS (Auto-monitoramento)
+  # ---------------------------------------------
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+          tier: 'monitoring'
+
+  # ---------------------------------------------
+  # 2. CADVISOR (Métricas de Containers Docker)
+  # ---------------------------------------------
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          service: 'cadvisor'
+          tier: 'monitoring'
+    metric_relabel_configs:
+      # Renomear métricas para facilitar identificação
+      - source_labels: [container_label_com_docker_compose_service]
+        target_label: service_name
+      - source_labels: [container_label_com_docker_compose_project]
+        target_label: project_name
+
+  # ---------------------------------------------
+  # 3. CATALOG MICROSERVICE
+  # ---------------------------------------------
+  - job_name: 'catalog-ms'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['catalog-ms:3001']
+        labels:
+          service: 'catalog-ms'
+          tier: 'backend'
+          language: 'nodejs'
+    # Health check adicional
+    health_check:
+      path: '/health'
+      interval: 30s
+      timeout: 5s
+
+  # ---------------------------------------------
+  # 4. CART MICROSERVICE (Futuro)
+  # ---------------------------------------------
+  - job_name: 'cart-ms'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['cart-ms:3002']
+        labels:
+          service: 'cart-ms'
+          tier: 'backend'
+          language: 'nodejs'
+
+  # ---------------------------------------------
+  # 5. AUTH MICROSERVICE (Futuro)
+  # ---------------------------------------------
+  - job_name: 'auth-ms'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['auth-ms:3003']
+        labels:
+          service: 'auth-ms'
+          tier: 'backend'
+          language: 'nodejs'
+
+  # ---------------------------------------------
+  # 6. PAYMENT MICROSERVICE (Futuro)
+  # ---------------------------------------------
+  - job_name: 'payment-ms'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['payment-ms:3004']
+        labels:
+          service: 'payment-ms'
+          tier: 'backend'
+          language: 'nodejs'
+
+  # ---------------------------------------------
+  # 7. MYSQL EXPORTER (Métricas do Banco)
+  # ---------------------------------------------
+  # Nota: Requer container mysql-exporter no docker-compose
+  # - job_name: 'mysql-catalog'
+  #   static_configs:
+  #     - targets: ['mysql-catalog-exporter:9104']
+  #       labels:
+  #         service: 'mysql-catalog'
+  #         tier: 'database'
+
+  # ---------------------------------------------
+  # 8. REDIS EXPORTER (Métricas do Cache)
+  # ---------------------------------------------
+  # Nota: Requer container redis-exporter no docker-compose
+  # - job_name: 'redis'
+  #   static_configs:
+  #     - targets: ['redis-exporter:9121']
+  #       labels:
+  #         service: 'redis'
+  #         tier: 'cache'
+
+  # ---------------------------------------------
+  # 9. NODE EXPORTER (Métricas do Host)
+  # ---------------------------------------------
+  # Nota: Requer node-exporter instalado no host
+  # - job_name: 'node'
+  #   static_configs:
+  #     - targets: ['node-exporter:9100']
+  #       labels:
+  #         service: 'node'
+  #         tier: 'infrastructure'
+
+# =============================================
+# MÉTRICAS CUSTOMIZADAS (Recording Rules)
+# =============================================
+# Exemplos de métricas agregadas para dashboards
+
+# groups:
+#   - name: glamour_recording_rules
+#     interval: 30s
+#     rules:
+#       # Taxa de requisições por serviço
+#       - record: service:http_requests_total:rate5m
+#         expr: rate(http_requests_total[5m])
+#       
+#       # Latência média por serviço
+#       - record: service:http_request_duration_seconds:avg5m
+#         expr: avg_over_time(http_request_duration_seconds[5m])
+#       
+#       # Uso de CPU por container
+#       - record: container:cpu_usage_percent:avg5m
+#         expr: avg_over_time(container_cpu_usage_seconds_total[5m])
